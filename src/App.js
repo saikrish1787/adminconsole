@@ -1,24 +1,54 @@
-import logo from './logo.svg';
+import { useEffect, useState } from 'react';
 import './App.css';
+import { Login } from './Components/login';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { Route, Routes } from 'react-router-dom';
+import { Signup } from './Components/signup';
+import { Home } from './Components/home';
+import { useQuery } from 'react-query';
 
 function App() {
+
+  const [user,setUser] = useState([]);
+  const [isLoading,setisLoading] = useState(true);
+
+  const userDataquery = useQuery({
+    queryKey:["userData"],
+    queryFn:() => fetch("http://localhost:4000/user/get").then((res) => res.json()).then(res => {
+      console.log(res)
+      return res;
+    })
+  })
+
+
+
+  async function getAllUser(){
+    setisLoading(true)
+    try{
+      const res = await fetch("http://localhost:4000/user/get")
+      const data =await res.json()
+      setUser(data);
+      setTimeout(()=> {
+        setisLoading(false)
+      },3000)
+    }catch(e){
+      toast.error(e.message + ", Status code 500",{
+        theme:"light"
+      })
+    }
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+   <Routes>
+      <Route path='/' element={<Login/>}></Route>
+      <Route path='/signin' element={<Login/>}></Route>
+      <Route path='/signup' element={<Signup/>}></Route>
+      <Route path='/home' element={<Home getAllUser={getAllUser} user={user} isLoading={isLoading}/>}></Route>
+   </Routes>
+   <ToastContainer  />
+   </>
   );
 }
 
